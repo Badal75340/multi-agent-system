@@ -3,338 +3,150 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NEXUS AI — Multi-Agent Research</title>
+<title>Research Console — Multi-Agent Pipeline</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css" />
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="bg-field" id="bgField" aria-hidden="true"></div>
+<div class="ambient" aria-hidden="true"></div>
 
-<!-- TOASTS -->
 <div class="toast-stack" id="toastStack"></div>
 
-<!-- MOBILE SIDEBAR OVERLAY -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="shell">
 
-<div class="app-shell">
-
-  <!-- ============ HEADER ============ -->
+  <!-- ============ TOPBAR ============ -->
   <header class="topbar">
-    <div class="topbar-left">
-      <button class="icon-btn hamburger" id="hamburgerBtn" aria-label="Toggle navigation">
-        <i data-lucide="menu"></i>
-      </button>
-      <div class="brand">
-        <div class="brand-mark"><i data-lucide="atom"></i></div>
-        <div class="brand-text">
-          <span class="brand-name">NEXUS<em>AI</em></span>
-          <span class="brand-sub">Multi-Agent Research</span>
-        </div>
+    <div class="brand">
+      <span class="brand-glyph">◈</span>
+      <div class="brand-text">
+        <span class="brand-name">research.<em>console</em></span>
+        <span class="brand-sub">multi-agent pipeline</span>
       </div>
     </div>
 
-    <nav class="topnav" id="topnav">
-      <button class="nav-link is-active" data-view="dashboard">Dashboard</button>
-      <button class="nav-link" data-view="research">Research</button>
-      <button class="nav-link" data-view="agents">Agents</button>
-      <button class="nav-link" data-view="reports">Reports</button>
-      <button class="nav-link" data-view="history">History</button>
-    </nav>
-
-    <div class="topbar-right">
-      <button class="icon-btn" id="notifBtn" aria-label="Notifications">
-        <i data-lucide="bell"></i>
-        <span class="notif-dot"></span>
-      </button>
-      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
-        <i data-lucide="moon"></i>
-      </button>
-      <button class="avatar-btn" id="avatarBtn" aria-label="Profile">
-        <span class="avatar">RA</span>
-      </button>
+    <div class="backend-status" id="backendStatus">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">checking backend…</span>
     </div>
   </header>
 
-  <div class="body-row">
+  <main class="main">
 
-    <!-- ============ SIDEBAR ============ -->
-    <aside class="sidebar" id="sidebar">
-      <nav class="side-nav">
-        <button class="side-link is-active" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
-        <button class="side-link" data-view="research"><i data-lucide="search"></i><span>Research</span></button>
-        <button class="side-link" data-view="agents"><i data-lucide="bot"></i><span>Agents</span></button>
-        <button class="side-link" data-view="reports"><i data-lucide="file-text"></i><span>Reports</span></button>
-        <button class="side-link" data-view="history"><i data-lucide="history"></i><span>History</span></button>
-        <button class="side-link" data-view="settings"><i data-lucide="settings"></i><span>Settings</span></button>
-      </nav>
+    <!-- ============ HERO / COMMAND BAR ============ -->
+    <section class="hero">
+      <span class="eyebrow">search → read → write → critique</span>
+      <h1>Point four agents<br>at a question.</h1>
+      <p>Type a topic. A search agent gathers sources, a reader agent digs into the best one, a writer drafts the report, and a critic scores it — live, end to end.</p>
 
-      <div class="side-status">
-        <div class="side-status-row"><span class="pulse-dot"></span> System Online</div>
-        <div class="side-status-sub">7 agents ready</div>
-      </div>
-    </aside>
+      <form class="command-bar" id="researchForm">
+        <span class="prompt-glyph">›</span>
+        <input
+          type="text"
+          id="topicInput"
+          placeholder="e.g. the impact of quantum computing on cryptography"
+          autocomplete="off"
+          maxlength="300"
+        />
+        <button type="submit" class="run-btn" id="runBtn">
+          <span class="run-label">Run research</span>
+          <span class="run-arrow">→</span>
+          <span class="run-spinner"></span>
+        </button>
+      </form>
+      <div class="field-hint" id="fieldHint">Minimum 3 characters. This calls your live backend at <code id="apiBaseLabel"></code>.</div>
 
-    <!-- ============ MAIN ============ -->
-    <main class="main">
-
-      <!-- ---- DASHBOARD VIEW ---- -->
-      <section class="view is-active" id="view-dashboard">
-
-        <!-- HERO -->
-        <section class="hero">
-          <div class="hero-copy">
-            <span class="eyebrow"><i data-lucide="sparkles"></i> Autonomous research swarm</span>
-            <h1>Research smarter.<br>Let AI agents <span class="grad-text">collaborate.</span></h1>
-            <p>Deploy a team of specialized AI agents to search, analyze, verify, synthesize, and generate research reports automatically.</p>
-          </div>
-
-          <div class="command-box glass">
-            <div class="command-row">
-              <i data-lucide="search" class="command-icon"></i>
-              <input type="text" id="topicInput" placeholder="What would you like to research?" />
-            </div>
-
-            <div class="command-controls">
-              <div class="select-group">
-                <label>Research Depth</label>
-                <select id="depthSelect">
-                  <option>Quick</option>
-                  <option selected>Standard</option>
-                  <option>Deep Research</option>
-                  <option>Academic</option>
-                </select>
-              </div>
-              <div class="select-group">
-                <label>Number of Agents</label>
-                <select id="agentCountSelect">
-                  <option>3</option>
-                  <option>5</option>
-                  <option selected>7</option>
-                  <option>10</option>
-                </select>
-              </div>
-              <button class="btn-primary" id="startBtn">
-                <span class="btn-label">Start Research</span>
-                <i data-lucide="arrow-right"></i>
-                <span class="btn-spinner"></span>
-              </button>
-              <button class="btn-ghost" id="resetBtn" title="Reset">
-                <i data-lucide="rotate-ccw"></i>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- STATS -->
-        <section class="stats-grid" id="statsGrid">
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="link-2"></i></div>
-            <div class="stat-value" data-stat="sourcesFound">0</div>
-            <div class="stat-label">Sources Found</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="shield-check"></i></div>
-            <div class="stat-value" data-stat="sourcesVerified">0</div>
-            <div class="stat-label">Sources Verified</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="check-circle-2"></i></div>
-            <div class="stat-value" data-stat="claimsVerified">0</div>
-            <div class="stat-label">Claims Verified</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="bot"></i></div>
-            <div class="stat-value" data-stat="agentsActive">0</div>
-            <div class="stat-label">Agents Active</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="target"></i></div>
-            <div class="stat-value" data-stat="accuracy">0<span class="unit">%</span></div>
-            <div class="stat-label">Research Accuracy</div>
-          </div>
-          <div class="stat-card glass">
-            <div class="stat-icon"><i data-lucide="timer"></i></div>
-            <div class="stat-value" data-stat="researchTime">0<span class="unit">s</span></div>
-            <div class="stat-label">Research Time</div>
-          </div>
-        </section>
-
-        <!-- AGENT WORKSPACE + PROGRESS -->
-        <section class="workspace-grid">
-
-          <div class="panel glass workspace-panel">
-            <div class="panel-head">
-              <h2><i data-lucide="git-branch"></i> Agent Workspace</h2>
-              <span class="panel-tag" id="workspaceTag">Idle</span>
-            </div>
-
-            <div class="agent-flow" id="agentFlow">
-              <!-- built by JS -->
-            </div>
-          </div>
-
-          <div class="panel glass progress-panel">
-            <div class="panel-head">
-              <h2><i data-lucide="activity"></i> Research Progress</h2>
-            </div>
-
-            <div class="progress-hero">
-              <div class="progress-ring-wrap">
-                <svg class="progress-ring" viewBox="0 0 140 140">
-                  <defs>
-                    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#22d3ee"></stop>
-                      <stop offset="55%" stop-color="#4f8cff"></stop>
-                      <stop offset="100%" stop-color="#9b6bff"></stop>
-                    </linearGradient>
-                  </defs>
-                  <circle class="ring-track" cx="70" cy="70" r="60"></circle>
-                  <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="60"></circle>
-                </svg>
-                <div class="progress-ring-value" id="progressPct">0%</div>
-              </div>
-              <div class="progress-meta">
-                <div class="progress-meta-row">
-                  <span class="meta-label">Current Agent</span>
-                  <span class="meta-value" id="currentAgentLabel">—</span>
-                </div>
-                <div class="progress-meta-row">
-                  <span class="meta-label">Sources</span>
-                  <span class="meta-value" id="sourcesRatio">0 / 0</span>
-                </div>
-                <div class="progress-meta-row">
-                  <span class="meta-label">Claims</span>
-                  <span class="meta-value" id="claimsRatio">0 / 0</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="activity-feed" id="activityFeed">
-              <div class="activity-empty">Activity will appear here once research starts.</div>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- ANALYTICS -->
-        <section class="charts-grid">
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="line-chart"></i> Research Activity</h2></div>
-            <canvas id="activityChart" height="220"></canvas>
-          </div>
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="bar-chart-3"></i> Agent Performance</h2></div>
-            <canvas id="performanceChart" height="220"></canvas>
-          </div>
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="pie-chart"></i> Source Distribution</h2></div>
-            <canvas id="distributionChart" height="220"></canvas>
-          </div>
-        </section>
-
-        <!-- RESULTS -->
-        <section class="results-section" id="resultsSection">
-
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="file-check-2"></i> Executive Summary</h2></div>
-            <p class="summary-text" id="summaryText">Run a research task to generate an executive summary.</p>
-          </div>
-
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="lightbulb"></i> Key Findings</h2></div>
-            <div class="findings-grid" id="findingsGrid"></div>
-          </div>
-
-          <div class="panel glass">
-            <div class="panel-head"><h2><i data-lucide="database"></i> Sources</h2></div>
-            <div class="table-wrap">
-              <table class="sources-table" id="sourcesTable">
-                <thead>
-                  <tr><th>Source</th><th>Type</th><th>Relevance</th><th>Verification</th><th>Date</th></tr>
-                </thead>
-                <tbody id="sourcesTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="panel glass report-preview" id="reportPreview">
-            <div class="panel-head">
-              <h2><i data-lucide="scroll-text"></i> Final Report Preview</h2>
-              <div class="report-actions">
-                <button class="btn-chip" id="viewReportBtn"><i data-lucide="expand"></i> View Full</button>
-                <button class="btn-chip" id="downloadReportBtn"><i data-lucide="download"></i> Download</button>
-                <button class="btn-chip" id="copyReportBtn"><i data-lucide="copy"></i> Copy</button>
-                <button class="btn-chip" id="shareReportBtn"><i data-lucide="share-2"></i> Share</button>
-              </div>
-            </div>
-            <div class="report-doc" id="reportDoc"></div>
-          </div>
-
-        </section>
-
-      </section>
-
-      <!-- ---- HISTORY VIEW ---- -->
-      <section class="view" id="view-history">
-        <div class="panel glass">
-          <div class="panel-head">
-            <h2><i data-lucide="history"></i> Research History</h2>
-            <div class="history-controls">
-              <input type="text" id="historySearch" placeholder="Search history…" />
-              <select id="historyFilter">
-                <option value="all">All statuses</option>
-                <option value="completed">Completed</option>
-                <option value="running">Running</option>
-              </select>
-            </div>
-          </div>
-          <div class="history-list" id="historyList"></div>
+      <div class="error-banner" id="errorBanner" hidden>
+        <i data-lucide="alert-triangle"></i>
+        <div>
+          <strong id="errorTitle">Something went wrong</strong>
+          <p id="errorMessage"></p>
         </div>
-      </section>
-
-    </main>
-  </div>
-</div>
-
-<!-- AGENT DETAIL MODAL -->
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal glass" role="dialog" aria-modal="true">
-    <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
-    <div class="modal-head">
-      <div class="modal-icon" id="modalIcon"><i data-lucide="bot"></i></div>
-      <div>
-        <h3 id="modalTitle">AGENT</h3>
-        <span class="modal-status" id="modalStatus">IDLE</span>
+        <button class="error-dismiss" id="errorDismiss" aria-label="Dismiss"><i data-lucide="x"></i></button>
       </div>
-    </div>
-    <div class="modal-grid">
-      <div><span class="meta-label">Task</span><p id="modalTask">—</p></div>
-      <div><span class="meta-label">Progress</span><p id="modalProgress">0%</p></div>
-      <div><span class="meta-label">Sources Processed</span><p id="modalSources">0</p></div>
-      <div><span class="meta-label">Claims Processed</span><p id="modalClaims">0</p></div>
-      <div><span class="meta-label">Execution Time</span><p id="modalTime">0.0s</p></div>
-      <div><span class="meta-label">Tokens</span><p id="modalTokens">0</p></div>
-    </div>
-    <div class="modal-timeline" id="modalTimeline">
-      <span class="meta-label">Activity Timeline</span>
-      <div class="timeline-list" id="timelineList"></div>
-    </div>
-  </div>
-</div>
+    </section>
 
-<!-- REPORT MODAL -->
-<div class="modal-backdrop" id="reportModalBackdrop">
-  <div class="modal glass modal-wide" role="dialog" aria-modal="true">
-    <button class="modal-close" id="reportModalClose"><i data-lucide="x"></i></button>
-    <div class="report-doc report-doc-full" id="reportDocFull"></div>
-  </div>
+    <!-- ============ PIPELINE ============ -->
+    <section class="pipeline-panel">
+      <div class="panel-head">
+        <h2>Agent pipeline</h2>
+        <span class="run-tag" id="runTag">Idle</span>
+      </div>
+
+      <div class="pipeline-track" id="pipelineTrack">
+        <!-- stage nodes injected by JS -->
+      </div>
+    </section>
+
+    <!-- ============ LIVE LOG + RESULTS ============ -->
+    <section class="lower-grid">
+
+      <div class="panel console-panel">
+        <div class="panel-head">
+          <h2><i data-lucide="terminal"></i> Live log</h2>
+        </div>
+        <div class="console-feed" id="consoleFeed">
+          <div class="console-empty">Run a research task to see agent activity here.</div>
+        </div>
+      </div>
+
+      <div class="panel meta-panel">
+        <div class="panel-head"><h2><i data-lucide="gauge"></i> Run summary</h2></div>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Sources found</span>
+            <span class="meta-value" id="metaSources">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Critic score</span>
+            <span class="meta-value" id="metaScore">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Report length</span>
+            <span class="meta-value" id="metaWords">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Duration</span>
+            <span class="meta-value" id="metaDuration">—</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <section class="results-panel" id="resultsPanel" hidden>
+      <div class="panel-head">
+        <h2><i data-lucide="file-text"></i> Results</h2>
+        <div class="result-actions">
+          <button class="chip-btn" id="copyBtn"><i data-lucide="copy"></i> Copy</button>
+          <button class="chip-btn" id="downloadBtn"><i data-lucide="download"></i> Download</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="resultTabs">
+        <button class="tab-btn is-active" data-tab="report">Report</button>
+        <button class="tab-btn" data-tab="critic">Critic review</button>
+        <button class="tab-btn" data-tab="sources">Search &amp; scraped content</button>
+      </div>
+
+      <div class="tab-panels">
+        <pre class="tab-panel is-active" id="tab-report"></pre>
+        <pre class="tab-panel" id="tab-critic"></pre>
+        <pre class="tab-panel" id="tab-sources"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    Connects directly to your FastAPI backend — no simulated data once a run completes.
+  </footer>
 </div>
 
 <script src="script.js"></script>
