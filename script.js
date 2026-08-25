@@ -9,7 +9,7 @@
                               duration_seconds }
 ========================================================= */
 
-const API_BASE = 'http://127.0.0.1:2200';
+const API_BASE = 'https://multi-agent-system-3-3v69.onrender.com';
 
 const el = (id) => document.getElementById(id);
 
