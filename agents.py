@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 #model setup 
-llm = ChatOpenAI(model = "gpt-5.4-mini",temperature=0,max_tokens=700)
+llm = ChatOpenAI(model = "gpt-5.4-mini",temperature=0,max_tokens=50000)
 
 
 #1st agent 
